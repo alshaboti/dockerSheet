@@ -42,3 +42,26 @@ sudo docker start <container>
 sudo docker -a start <container>
 ```
 If you use start with -a it will return interactive shell. 
+
+# Docker API
+You can execute docker commands from a container by binding `/var/run/docker.sock` socket.  
+In this example, `manager` container wil send signal to some process in `host` container.  
+Run `manager` container and mount `docker.sock` to it.
+```
+docker run --name manager -it -v /var/run/docker.sock:/var/run/docker.sock imageName bash
+```
+In side `manager` container install docker python SDK. 
+```
+pip install docker
+```
+And then execute this python script
+```
+import docker
+client = docker.from_env()
+# run alpine container 
+print client.containers.run("alpine", ["echo", "hello", "world"])
+# send -HUP singal to proccessName inside containerNme/ID
+container = client.containers.get('containerNme/ID')
+container.exec_run("pkill -HUP proccessName")
+```
+More in [here](https://docs.docker.com/develop/sdk/examples/) and [here](https://docker-py.readthedocs.io/en/stable/containers.html)
